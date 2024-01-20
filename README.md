@@ -40,10 +40,9 @@ lazy val db = project
 
 An example for using the `quillcodegenSetupTask` to setup an sqlite database with a `schema.sql` file before the code generation runs:
 ```
-quillcodegenSetupTask := {
-    val dbFile = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-    IO.delete(file(dbFile))
-    executeSqlFile(quillcodegenJdbcUrl.value, file("./schema.sql"))
+quillcodegenSetupTask := Def.taskDyn {
+    IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+    executeSqlFile(file("./schema.sql"))
 }
 ```
 
