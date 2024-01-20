@@ -1,0 +1,10 @@
+# bloop and metals
+.bloop
+.bsp
+
+# metals
+.metals
+
+# sbt
+target/
+
