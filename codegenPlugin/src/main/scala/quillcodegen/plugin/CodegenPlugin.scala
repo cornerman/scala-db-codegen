@@ -24,19 +24,21 @@ object CodegenPlugin extends AutoPlugin {
     val quillcodegenTimeout             = settingKey[Duration]("Timeout for the generate task")
 
     def executeSql(sql: String): Def.Initialize[Task[Unit]] = Def.task {
-      val dataSource = SqlExecutor.getDataSource(quillcodegenJdbcUrl.value, username = quillcodegenUsername.value, password = quillcodegenPassword.value)
+      val dataSource =
+        SqlExecutor.getDataSource(quillcodegenJdbcUrl.value, username = quillcodegenUsername.value, password = quillcodegenPassword.value)
       SqlExecutor.executeSql(dataSource, sql)
     }
 
     def executeSqlFile(file: File): Def.Initialize[Task[Unit]] = Def.task {
-      val dataSource = SqlExecutor.getDataSource(quillcodegenJdbcUrl.value, username = quillcodegenUsername.value, password = quillcodegenPassword.value)
+      val dataSource =
+        SqlExecutor.getDataSource(quillcodegenJdbcUrl.value, username = quillcodegenUsername.value, password = quillcodegenPassword.value)
       SqlExecutor.executeSqlFile(dataSource, file)
     }
   }
   import autoImport._
 
   override lazy val projectSettings: Seq[Def.Setting[_]] = Seq(
-    quillcodegenSetupTask        := {},
+    quillcodegenSetupTask           := {},
     quillcodegenNestedTrait         := false,
     quillcodegenGenerateQuerySchema := true,
     quillcodegenNaming              := SnakeCaseNames,
