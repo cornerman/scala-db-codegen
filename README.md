@@ -5,12 +5,12 @@ This is an sbt-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-qui
 ## Usage
 
 In `project/plugins.sbt`:
-```
-addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "latest")
+```sbt
+addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "0.1.0")
 ```
 
 In `build.sbt`:
-```
+```sbt
 lazy val db = project
   .enablePlugins(quillcodegen.plugin.CodegenPlugin)
   .settings(
@@ -39,7 +39,7 @@ lazy val db = project
 ### Setup database before codegen
 
 An example for using the `quillcodegenSetupTask` to setup an sqlite database with a `schema.sql` file before the code generation runs:
-```
+```sbt
 quillcodegenSetupTask := Def.taskDyn {
     IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
     executeSqlFile(file("./schema.sql"))
