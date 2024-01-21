@@ -4,9 +4,12 @@ import com.mysql.cj.jdbc.MysqlDataSource
 import org.mariadb.jdbc.MariaDbDataSource
 import org.postgresql.ds.PGSimpleDataSource
 import org.sqlite.SQLiteDataSource
+import org.apache.ibatis.jdbc.ScriptRunner
 
+import java.io.StringReader
 import java.io.File
 import javax.sql.DataSource
+
 import scala.io.Source
 import scala.util.chaining._
 
@@ -16,10 +19,14 @@ object SqlExecutor {
   }
 
   def executeSql(dataSource: DataSource, sql: String): Unit = {
-    val connection = dataSource.getConnection
+    val connection   = dataSource.getConnection
+    val scriptRunner = new ScriptRunner(connection)
+    val reader       = new StringReader(sql)
+
     try {
-      val _ = connection.createStatement().execute(sql)
+      scriptRunner.runScript(reader)
     } finally {
+      reader.close()
       connection.close()
     }
   }

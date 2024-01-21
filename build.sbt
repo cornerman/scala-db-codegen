@@ -37,6 +37,7 @@ lazy val codegen = project
       "org.postgresql"   % "postgresql"           % "42.7.1",
       "mysql"            % "mysql-connector-java" % "8.0.33",
       "org.mariadb.jdbc" % "mariadb-java-client"  % "3.1.2",
+      "org.mybatis"      % "mybatis"              % "3.5.15",
     ),
   )
 
