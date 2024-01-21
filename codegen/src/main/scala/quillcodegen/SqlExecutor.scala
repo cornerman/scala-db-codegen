@@ -8,8 +8,8 @@ import org.apache.ibatis.jdbc.ScriptRunner
 
 import java.io.StringReader
 import java.io.File
+import java.sql.Connection
 import javax.sql.DataSource
-
 import scala.io.Source
 import scala.util.chaining._
 
@@ -20,16 +20,22 @@ object SqlExecutor {
 
   def executeSql(dataSource: DataSource, sql: String): Unit = {
     val connection   = dataSource.getConnection
-    val scriptRunner = new ScriptRunner(connection)
     val reader       = new StringReader(sql)
 
     try {
-      scriptRunner.runScript(reader)
+      createScriptRunner(connection).runScript(reader)
     } finally {
       reader.close()
       connection.close()
     }
   }
+
+  private def createScriptRunner(connection: Connection) =
+    new ScriptRunner(connection)
+      .tap(_.setStopOnError(true))
+      .tap(_.setSendFullScript(false))
+      .tap(_.setAutoCommit(true))
+      .tap(_.setRemoveCRs(true))
 
   def getDataSource(jdbcUrl: String, username: Option[String] = None, password: Option[String] = None): DataSource = jdbcUrl match {
     case s if s.startsWith("jdbc:sqlite:") =>
