@@ -22,6 +22,7 @@ object CodegenPlugin extends AutoPlugin {
     val quillcodegenUsername            = settingKey[Option[String]]("Optional database username")
     val quillcodegenPassword            = settingKey[Option[String]]("Optional database password")
     val quillcodegenTimeout             = settingKey[Duration]("Timeout for the generate task")
+    val quillVersion                    = settingKey[String]("Version used for quill-core")
 
     def executeSql(sql: String): Def.Initialize[Task[Unit]] = Def.task {
       val dataSource =
@@ -45,9 +46,10 @@ object CodegenPlugin extends AutoPlugin {
     quillcodegenUsername            := None,
     quillcodegenPassword            := None,
     quillcodegenTimeout             := Duration.Inf,
+    quillVersion                    := "4.8.1",
 
     // Should be same as in build.sbt for codegen module
-    libraryDependencies += "io.getquill" %% "quill-core" % "4.8.1",
+    libraryDependencies += "io.getquill" %% "quill-core" % quillVersion.value,
     (Compile / sourceGenerators) += Def.task {
       val outDir = (Compile / sourceManaged).value / "scala" / "quillcodegen"
 
