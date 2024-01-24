@@ -1,7 +1,17 @@
 package quillcodegen.plugin
 
 import io.getquill.codegen.jdbc.model.JdbcTypeInfo
-import io.getquill.codegen.model.{JdbcColumnMeta, JdbcTableMeta, NameParser, NumericPreference, RawSchema, SkipColumn, SnakeCaseNames, UnrecognizedTypeStrategy, UseDefaults}
+import io.getquill.codegen.model.{
+  JdbcColumnMeta,
+  JdbcTableMeta,
+  NameParser,
+  NumericPreference,
+  RawSchema,
+  SkipColumn,
+  SnakeCaseNames,
+  UnrecognizedTypeStrategy,
+  UseDefaults,
+}
 import quillcodegen.{Codegen, SqlExecutor}
 import sbt.{io => _, _}
 import sbt.Keys._
@@ -15,20 +25,34 @@ object CodegenPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
   object autoImport {
-    val quillcodegenSetupTask           = taskKey[Unit]("Setup task to be executed before the code generation runs against the database")
-    val quillcodegenJdbcUrl             = settingKey[String]("The jdbc URL for the database")
-    val quillcodegenPackagePrefix       = settingKey[String]("The package prefix for the generated code")
-    val quillcodegenNestedTrait         = settingKey[Boolean]("Whether to generate nested traits, default is false")
-    val quillcodegenGenerateQuerySchema = settingKey[Boolean]("Whether to generate query schemas, default is true")
-    val quillcodegenTableFilter         = settingKey[RawSchema[JdbcTableMeta, JdbcColumnMeta] => Boolean]("Specify which tables to process, default is all")
-    val quillcodegenUnrecognizedType    = settingKey[UnrecognizedTypeStrategy]("Strategy for unrecognized types")
-    val quillcodegenTypeMapping         = settingKey[(JdbcTypeInfo, Option[ClassTag[_]]) => Option[ClassTag[_]]]("Which tables to ignore")
-    val quillcodegenNumericType         = settingKey[NumericPreference]("Which numeric type preference for numeric types")
-    val quillcodegenNaming              = settingKey[NameParser]("The naming parser to use, default is SnakeCaseNames")
-    val quillcodegenUsername            = settingKey[Option[String]]("Optional database username")
-    val quillcodegenPassword            = settingKey[Option[String]]("Optional database password")
-    val quillcodegenTimeout             = settingKey[Duration]("Timeout for the generate task")
-    val quillVersion                    = settingKey[String]("Version used for quill-core")
+    val quillcodegenSetupTask =
+      taskKey[Unit]("Setup task to be executed before the code generation runs against the database")
+    val quillcodegenJdbcUrl =
+      settingKey[String]("The jdbc URL for the database")
+    val quillcodegenPackagePrefix =
+      settingKey[String]("The package prefix for the generated code")
+    val quillcodegenNestedTrait =
+      settingKey[Boolean]("Whether to generate nested traits, default is false")
+    val quillcodegenGenerateQuerySchema =
+      settingKey[Boolean]("Whether to generate query schemas, default is true")
+    val quillcodegenTableFilter =
+      settingKey[RawSchema[JdbcTableMeta, JdbcColumnMeta] => Boolean]("Specify which tables to process, default is all")
+    val quillcodegenUnrecognizedType =
+      settingKey[UnrecognizedTypeStrategy]("Strategy for unrecognized types")
+    val quillcodegenTypeMapping =
+      settingKey[(JdbcTypeInfo, Option[ClassTag[_]]) => Option[ClassTag[_]]]("Map jdbc types to java/scala types")
+    val quillcodegenNumericType =
+      settingKey[NumericPreference]("Which numeric type preference for numeric types")
+    val quillcodegenNaming =
+      settingKey[NameParser]("The naming parser to use, default is SnakeCaseNames")
+    val quillcodegenUsername =
+      settingKey[Option[String]]("Optional database username")
+    val quillcodegenPassword =
+      settingKey[Option[String]]("Optional database password")
+    val quillcodegenTimeout =
+      settingKey[Duration]("Timeout for the generate task")
+    val quillVersion =
+      settingKey[String]("Version used for quill-core")
 
     def executeSql(sql: String): Def.Initialize[Task[Unit]] = Def.task {
       val dataSource =

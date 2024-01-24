@@ -29,6 +29,14 @@ lazy val db = project
     // quillcodegenNestedTrait         := false,
     // Whether to generate query schemas, default is true
     // quillcodegenGenerateQuerySchema := true,
+    // Specify which tables to process, default is all
+    // quillcodegenTableFilter         := (_ => true),
+    // Strategy for unrecognized types
+    // quillcodegenUnrecognizedType    := SkipColumn,
+    // Map jdbc types to java/scala types
+    // quillcodegenTypeMapping         := ((_, classTag) => classTag),
+    // Which numeric type preference for numeric types
+    // quillcodegenNumericType         := UseDefaults,
     // Timeout for the generate task
     // quillcodegenTimeout             := Duration.Inf,
     // Setup task to be executed before the code generation runs against the database
