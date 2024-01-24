@@ -1,6 +1,7 @@
 package quillcodegen.plugin
 
-import io.getquill.codegen.model.{NameParser, SnakeCaseNames}
+import io.getquill.codegen.jdbc.model.JdbcTypeInfo
+import io.getquill.codegen.model.{JdbcColumnMeta, JdbcTableMeta, NameParser, NumericPreference, RawSchema, SkipColumn, SnakeCaseNames, UnrecognizedTypeStrategy, UseDefaults}
 import quillcodegen.{Codegen, SqlExecutor}
 import sbt.{io => _, _}
 import sbt.Keys._
@@ -8,6 +9,7 @@ import sbt.Keys._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.io.File
+import scala.reflect.ClassTag
 
 object CodegenPlugin extends AutoPlugin {
   override def trigger = noTrigger
@@ -18,6 +20,10 @@ object CodegenPlugin extends AutoPlugin {
     val quillcodegenPackagePrefix       = settingKey[String]("The package prefix for the generated code")
     val quillcodegenNestedTrait         = settingKey[Boolean]("Whether to generate nested traits, default is false")
     val quillcodegenGenerateQuerySchema = settingKey[Boolean]("Whether to generate query schemas, default is true")
+    val quillcodegenTableFilter         = settingKey[RawSchema[JdbcTableMeta, JdbcColumnMeta] => Boolean]("Specify which tables to process, default is all")
+    val quillcodegenUnrecognizedType    = settingKey[UnrecognizedTypeStrategy]("Strategy for unrecognized types")
+    val quillcodegenTypeMapping         = settingKey[(JdbcTypeInfo, Option[ClassTag[_]]) => Option[ClassTag[_]]]("Which tables to ignore")
+    val quillcodegenNumericType         = settingKey[NumericPreference]("Which numeric type preference for numeric types")
     val quillcodegenNaming              = settingKey[NameParser]("The naming parser to use, default is SnakeCaseNames")
     val quillcodegenUsername            = settingKey[Option[String]]("Optional database username")
     val quillcodegenPassword            = settingKey[Option[String]]("Optional database password")
@@ -42,6 +48,10 @@ object CodegenPlugin extends AutoPlugin {
     quillcodegenSetupTask           := {},
     quillcodegenNestedTrait         := false,
     quillcodegenGenerateQuerySchema := true,
+    quillcodegenTableFilter         := (_ => true),
+    quillcodegenUnrecognizedType    := SkipColumn,
+    quillcodegenTypeMapping         := ((_, classTag) => classTag),
+    quillcodegenNumericType         := UseDefaults,
     quillcodegenNaming              := SnakeCaseNames,
     quillcodegenUsername            := None,
     quillcodegenPassword            := None,
@@ -65,6 +75,10 @@ object CodegenPlugin extends AutoPlugin {
         naming = quillcodegenNaming.value,
         generateQuerySchema = quillcodegenGenerateQuerySchema.value,
         nestedTrait = quillcodegenNestedTrait.value,
+        tableFilter = quillcodegenTableFilter.value,
+        unrecognizedType = quillcodegenUnrecognizedType.value,
+        typeMapping = quillcodegenTypeMapping.value,
+        numericType = quillcodegenNumericType.value,
       )
 
       val generatedFiles = Await.result(generation, quillcodegenTimeout.value)

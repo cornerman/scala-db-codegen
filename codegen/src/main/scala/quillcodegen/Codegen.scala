@@ -1,11 +1,13 @@
 package quillcodegen
 
 import io.getquill.codegen.jdbc.ComposeableTraitsJdbcCodegen
+import io.getquill.codegen.jdbc.model.JdbcTypeInfo
 import io.getquill.codegen.model._
 
 import java.io.File
 import java.nio.file.Path
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 object Codegen {
   def generate(
@@ -14,6 +16,10 @@ object Codegen {
     username: Option[String],
     password: Option[String],
     packagePrefix: String,
+    tableFilter: RawSchema[JdbcTableMeta, JdbcColumnMeta] => Boolean,
+    unrecognizedType: UnrecognizedTypeStrategy,
+    typeMapping: (JdbcTypeInfo, Option[ClassTag[_]]) => Option[ClassTag[_]],
+    numericType: NumericPreference,
     naming: NameParser,
     nestedTrait: Boolean,
     generateQuerySchema: Boolean,
@@ -21,6 +27,10 @@ object Codegen {
     val dataSource = SqlExecutor.getDataSource(jdbcUrl, username = username, password = password)
 
     val gen = new ComposeableTraitsJdbcCodegen(dataSource, packagePrefix = packagePrefix, nestedTrait = nestedTrait) {
+      override def typer: Typer = tpe => typeMapping(tpe, super.typer(tpe))
+      override def unrecognizedTypeStrategy: UnrecognizedTypeStrategy = unrecognizedType
+      override def numericPreference: NumericPreference = numericType
+      override def filter(tc: RawSchema[JdbcTableMeta, JdbcColumnMeta]): Boolean = super.filter(tc) && tableFilter(tc)
       override def nameParser: NameParser               = sanitizedNameParser(naming, shouldGenerateQuerySchema = generateQuerySchema)
       override def packagingStrategy: PackagingStrategy = PackagingStrategy.ByPackageHeader.TablePerSchema(this.packagePrefix)
     }
