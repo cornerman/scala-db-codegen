@@ -81,9 +81,10 @@ object CodegenPlugin extends AutoPlugin {
     quillcodegenPassword            := None,
     quillcodegenTimeout             := Duration.Inf,
     quillVersion                    := "4.8.1",
-
-    // Should be same as in build.sbt for codegen module
-    libraryDependencies += "io.getquill" %% "quill-core" % quillVersion.value,
+    libraryDependencies ++= {
+      if (isScala3(scalaVersion.value)) Seq("io.getquill" %% "quill-sql" % quillVersion.value)
+      else Seq("io.getquill" %% "quill-core" % quillVersion.value)
+    },
     (Compile / sourceGenerators) += Def.task {
       val outDir = (Compile / sourceManaged).value / "scala" / "quillcodegen"
 
@@ -103,6 +104,7 @@ object CodegenPlugin extends AutoPlugin {
         unrecognizedType = quillcodegenUnrecognizedType.value,
         typeMapping = quillcodegenTypeMapping.value,
         numericType = quillcodegenNumericType.value,
+        isScala3 = isScala3(scalaVersion.value)
       )
 
       val generatedFiles = Await.result(generation, quillcodegenTimeout.value)
@@ -110,4 +112,9 @@ object CodegenPlugin extends AutoPlugin {
       generatedFiles.map(_.toFile)
     }.taskValue,
   )
+
+  private def isScala3(scalaVer: String): Boolean = CrossVersion.partialVersion(scalaVer) match {
+    case Some((3, _)) => true
+    case _            => false
+  }
 }
