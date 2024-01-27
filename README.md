@@ -6,7 +6,7 @@ This is an sbt-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-qui
 
 In `project/plugins.sbt`:
 ```sbt
-addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "0.1.0")
+addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "0.1.5")
 ```
 
 In `build.sbt`:
