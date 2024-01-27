@@ -2,6 +2,8 @@
 
 This is an sbt-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-quill/code-generation/) to generate case classes and query schemas from a database schema.
 
+Works with scala 2 and 3.
+
 ## Usage
 
 In `project/plugins.sbt`:
