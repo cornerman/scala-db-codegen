@@ -3,19 +3,29 @@ package quillcodegen.plugin
 import io.getquill.codegen.jdbc.model.JdbcTypeInfo
 import mill._
 import scalalib._
-import io.getquill.codegen.model.{JdbcColumnMeta, JdbcTableMeta, NameParser, NumericPreference, RawSchema, SkipColumn, SnakeCaseNames, UnrecognizedTypeStrategy, UseDefaults}
+import io.getquill.codegen.model.{
+  JdbcColumnMeta,
+  JdbcTableMeta,
+  NameParser,
+  NumericPreference,
+  RawSchema,
+  SkipColumn,
+  SnakeCaseNames,
+  UnrecognizedTypeStrategy,
+  UseDefaults,
+}
 import quillcodegen.{Codegen, SqlExecutor}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 
-trait CodegenPlugin extends ScalaModule {
+trait QuillCodegenModule extends ScalaModule {
 
   // The jdbc URL for the database
   def quillcodegenJdbcUrl: String
   // Setup task to be executed before the code generation runs against the database
-  def quillcodegenSetupTask: Task[Unit] = T.task {()}
+  def quillcodegenSetupTask: Task[Unit] = T.task { () }
   // The package prefix for the generated code
   def quillcodegenPackagePrefix: String
   // Whether to generate nested traits, default is false
@@ -81,17 +91,17 @@ trait CodegenPlugin extends ScalaModule {
     scalaOutput ++ super.generatedSources()
   }
 
-  def executeSql(sql: String): Task[Unit] = T.task {
+  def executeSql(sql: String): Unit = {
     val dataSource =
       SqlExecutor.getDataSource(quillcodegenJdbcUrl, username = quillcodegenUsername, password = quillcodegenPassword)
     SqlExecutor.executeSql(dataSource, sql)
   }
 
-  def executeSqlFile(file: PathRef): Task[Unit] = T.task {
+  def executeSqlFile(file: PathRef): Unit = {
     val dataSource =
       SqlExecutor.getDataSource(quillcodegenJdbcUrl, username = quillcodegenUsername, password = quillcodegenPassword)
     SqlExecutor.executeSqlFile(dataSource, file.path.toIO)
   }
 
-  private def isScala3 = T{ scalaVersion().startsWith("3.") }
+  private def isScala3 = T { scalaVersion().startsWith("3.") }
 }
