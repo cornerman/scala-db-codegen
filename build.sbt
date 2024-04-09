@@ -2,9 +2,9 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   Seq(
+    scalaVersion       := "2.13.13",
+    crossScalaVersions := Seq("2.12.19", "2.13.13"),
     organization       := "com.github.cornerman",
-    scalaVersion       := "2.12.12",
-    crossScalaVersions := Seq("2.12.12"),
     licenses           := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
     homepage           := Some(url("https://github.com/cornerman/sbt-quillcodegen")),
     scmInfo := Some(
@@ -28,7 +28,6 @@ inThisBuild(
 lazy val codegen = project
   .settings(
     name               := "quillcodegen",
-    crossScalaVersions := Seq("2.12.12", "2.13.12"),
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Should be same as in Codegen.scala for generated code
@@ -41,10 +40,25 @@ lazy val codegen = project
     ),
   )
 
-lazy val codegenPlugin = project
+lazy val pluginSbt = project
   .settings(
     name              := "sbt-quillcodegen",
+    scalaVersion       := "2.12.19",
+    crossScalaVersions := Seq("2.12.19"),
     sbtPlugin         := true,
     publishMavenStyle := true,
+  )
+  .dependsOn(codegen)
+
+lazy val pluginMill = project
+  .settings(
+    name              := "mill-quillcodegen",
+    scalaVersion       := "2.13.13",
+    crossScalaVersions := Seq("2.13.13"),
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "mill-main" % "0.11.7",
+      "com.lihaoyi" %% "mill-main-api" % "0.11.7",
+      "com.lihaoyi" %% "mill-scalalib" % "0.11.7",
+    ),
   )
   .dependsOn(codegen)

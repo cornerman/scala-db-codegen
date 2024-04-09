@@ -1,10 +1,12 @@
 # sbt-quillcodegen
 
-This is an sbt-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-quill/code-generation/) to generate case classes and query schemas from a database schema.
+This is an sbt-plugin (and mill-plugin) that uses the [quill-codegen-jdbc](https://zio.dev/zio-quill/code-generation/) to generate case classes and query schemas from a database schema.
 
 Works with scala 2 and 3.
 
 ## Usage
+
+### sbt
 
 In `project/plugins.sbt`:
 ```sbt
@@ -46,7 +48,7 @@ lazy val db = project
   )
 ```
 
-### Setup database before codegen
+#### Setup database before codegen
 
 An example for using the `quillcodegenSetupTask` to setup an sqlite database with a `schema.sql` file before the code generation runs:
 ```sbt
@@ -58,3 +60,8 @@ quillcodegenSetupTask := Def.taskDyn {
 
 The functions `executeSql` and `executeSqlFile` are provided for these kind of use-cases and use the provided jdbcUrl, username, and password.
 
+
+### mill
+
+In `build.sc`:
+TODO
