@@ -2,11 +2,9 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   Seq(
-    organization       := "com.github.cornerman",
-    scalaVersion       := "2.12.12",
-    crossScalaVersions := Seq("2.12.12"),
-    licenses           := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
-    homepage           := Some(url("https://github.com/cornerman/sbt-quillcodegen")),
+    organization := "com.github.cornerman",
+    licenses     := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
+    homepage     := Some(url("https://github.com/cornerman/sbt-quillcodegen")),
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/cornerman/sbt-quillcodegen"),
@@ -25,10 +23,10 @@ inThisBuild(
   )
 )
 
+// TODO: Use sbt-cross to workaround: https://github.com/sbt/sbt/issues/5586
 lazy val codegen = project
   .settings(
-    name               := "quillcodegen",
-    crossScalaVersions := Seq("2.12.12", "2.13.12"),
+    name := "quillcodegen",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       // Should be same as in Codegen.scala for generated code
@@ -40,11 +38,30 @@ lazy val codegen = project
       "org.mybatis"      % "mybatis"              % "3.5.15",
     ),
   )
+  .cross
 
-lazy val codegenPlugin = project
+lazy val codegen212 = codegen("2.12.19")
+lazy val codegen213 = codegen("2.13.13")
+
+lazy val pluginSbt = project
   .settings(
-    name              := "sbt-quillcodegen",
-    sbtPlugin         := true,
-    publishMavenStyle := true,
+    name               := "sbt-quillcodegen",
+    scalaVersion       := "2.12.19",
+    crossScalaVersions := Seq("2.12.19"),
+    sbtPlugin          := true,
+    publishMavenStyle  := true,
   )
-  .dependsOn(codegen)
+  .dependsOn(codegen212)
+
+lazy val pluginMill = project
+  .settings(
+    name               := "mill-quillcodegen",
+    scalaVersion       := "2.13.13",
+    crossScalaVersions := Seq("2.13.13"),
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "mill-main"     % "0.11.7",
+      "com.lihaoyi" %% "mill-main-api" % "0.11.7",
+      "com.lihaoyi" %% "mill-scalalib" % "0.11.7",
+    ),
+  )
+  .dependsOn(codegen213)

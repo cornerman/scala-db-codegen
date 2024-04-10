@@ -15,7 +15,7 @@ jobs:
       - uses: olafurpg/setup-scala@v12
 
       - name: Test
-        run: sbt ++test
+        run: sbt test
 
   publish:
     needs: [build]

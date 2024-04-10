@@ -21,7 +21,7 @@ import scala.concurrent.duration.Duration
 import java.io.File
 import scala.reflect.ClassTag
 
-object CodegenPlugin extends AutoPlugin {
+object QuillCodegenPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
   object autoImport {
@@ -82,8 +82,8 @@ object CodegenPlugin extends AutoPlugin {
     quillcodegenTimeout             := Duration.Inf,
     quillVersion                    := "4.8.1",
     libraryDependencies ++= {
-      if (isScala3(scalaVersion.value)) Seq("io.getquill" %% "quill-sql" % quillVersion.value)
-      else Seq("io.getquill" %% "quill-core" % quillVersion.value)
+      if (isScala3(scalaVersion.value)) Seq("io.getquill" %% "quill-sql"  % quillVersion.value)
+      else Seq("io.getquill"                              %% "quill-core" % quillVersion.value)
     },
     (Compile / sourceGenerators) += Def.task {
       val outDir = (Compile / sourceManaged).value / "scala" / "quillcodegen"
@@ -104,7 +104,7 @@ object CodegenPlugin extends AutoPlugin {
         unrecognizedType = quillcodegenUnrecognizedType.value,
         typeMapping = quillcodegenTypeMapping.value,
         numericType = quillcodegenNumericType.value,
-        isScala3 = isScala3(scalaVersion.value)
+        isScala3 = isScala3(scalaVersion.value),
       )
 
       val generatedFiles = Await.result(generation, quillcodegenTimeout.value)

@@ -1,14 +1,16 @@
-# sbt-quillcodegen
+# scala-quillcodegen
 
-This is an sbt-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-quill/code-generation/) to generate case classes and query schemas from a database schema.
+This is an sbt-plugin and mill-plugin that uses the [quill-codegen-jdbc](https://zio.dev/zio-quill/code-generation/) to generate case classes and query schemas from a database schema.
 
 Works with scala 2 and 3.
 
 ## Usage
 
+### sbt
+
 In `project/plugins.sbt`:
 ```sbt
-addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "0.1.5")
+addSbtPlugin("com.github.cornerman" % "sbt-quillcodegen" % "0.2.0")
 ```
 
 In `build.sbt`:
@@ -46,7 +48,7 @@ lazy val db = project
   )
 ```
 
-### Setup database before codegen
+#### Setup database before codegen
 
 An example for using the `quillcodegenSetupTask` to setup an sqlite database with a `schema.sql` file before the code generation runs:
 ```sbt
@@ -58,3 +60,21 @@ quillcodegenSetupTask := Def.taskDyn {
 
 The functions `executeSql` and `executeSqlFile` are provided for these kind of use-cases and use the provided jdbcUrl, username, and password.
 
+
+### mill
+
+In `build.sc`:
+```
+import mill._, scalalib._
+import $ivy.`com.github.cornerman::mill-quillcodegen:0.2.0`, quillcodegen.plugin.QuillCodegenModule
+
+object backend extends ScalaModule with QuillCodegenModule {
+  def quillcodegenJdbcUrl       = "com.example.db",
+  def quillcodegenPackagePrefix = "dbtypes"
+  def quillcodegenSetupTask = T.task {
+    val dbpath = quillcodegenJdbcUrl.stripPrefix("jdbc:sqlite:")
+    os.remove(os.pwd / dbpath)
+    executeSqlFile(PathRef(os.pwd / "schema.sql"))
+  }
+}
+```
