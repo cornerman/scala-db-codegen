@@ -2,8 +2,6 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   Seq(
-    scalaVersion       := "2.13.13",
-    crossScalaVersions := Seq("2.12.19", "2.13.13"),
     organization       := "com.github.cornerman",
     licenses           := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
     homepage           := Some(url("https://github.com/cornerman/sbt-quillcodegen")),
@@ -25,6 +23,7 @@ inThisBuild(
   )
 )
 
+// TODO: Use sbt-cross to workaround: https://github.com/sbt/sbt/issues/5586
 lazy val codegen = project
   .settings(
     name               := "quillcodegen",
@@ -38,7 +37,10 @@ lazy val codegen = project
       "org.mariadb.jdbc" % "mariadb-java-client"  % "3.1.2",
       "org.mybatis"      % "mybatis"              % "3.5.15",
     ),
-  )
+  ).cross
+
+lazy val codegen212 = codegen("2.12.19")
+lazy val codegen213 = codegen("2.13.13")
 
 lazy val pluginSbt = project
   .settings(
@@ -48,7 +50,7 @@ lazy val pluginSbt = project
     sbtPlugin         := true,
     publishMavenStyle := true,
   )
-  .dependsOn(codegen)
+  .dependsOn(codegen212)
 
 lazy val pluginMill = project
   .settings(
@@ -61,4 +63,4 @@ lazy val pluginMill = project
       "com.lihaoyi" %% "mill-scalalib" % "0.11.7",
     ),
   )
-  .dependsOn(codegen)
+  .dependsOn(codegen213)
