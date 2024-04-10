@@ -31,12 +31,12 @@ object Codegen {
     val dataSource = SqlExecutor.getDataSource(jdbcUrl, username = username, password = password)
 
     object gen extends ComposeableTraitsJdbcCodegen(dataSource, packagePrefix = packagePrefix, nestedTrait = nestedTrait) {
-      override def typer: Typer = tpe => typeMapping(tpe, super.typer(tpe))
-      override def unrecognizedTypeStrategy: UnrecognizedTypeStrategy = unrecognizedType
-      override def numericPreference: NumericPreference = numericType
+      override def typer: Typer                                                  = tpe => typeMapping(tpe, super.typer(tpe))
+      override def unrecognizedTypeStrategy: UnrecognizedTypeStrategy            = unrecognizedType
+      override def numericPreference: NumericPreference                          = numericType
       override def filter(tc: RawSchema[JdbcTableMeta, JdbcColumnMeta]): Boolean = super.filter(tc) && tableFilter(tc)
-      override def nameParser: NameParser               = sanitizedNameParser(naming, shouldGenerateQuerySchema = generateQuerySchema)
-      override def packagingStrategy: PackagingStrategy = PackagingStrategy.ByPackageHeader.TablePerSchema(this.packagePrefix)
+      override def nameParser: NameParser                                        = sanitizedNameParser(naming, shouldGenerateQuerySchema = generateQuerySchema)
+      override def packagingStrategy: PackagingStrategy                          = PackagingStrategy.ByPackageHeader.TablePerSchema(this.packagePrefix)
 
       override def generatorMaker = new SingleGeneratorFactory[ContextifiedUnitGenerator] {
         override def apply(emitterSettings: EmitterSettings[JdbcTableMeta, JdbcColumnMeta]): ContextifiedUnitGenerator = {
@@ -44,14 +44,15 @@ object Codegen {
         }
       }
 
-      class ContextifiedUnitGeneratorWrap(emitterSettings: EmitterSettings[JdbcTableMeta, JdbcColumnMeta]) extends ContextifiedUnitGenerator(emitterSettings) {
+      class ContextifiedUnitGeneratorWrap(emitterSettings: EmitterSettings[JdbcTableMeta, JdbcColumnMeta])
+          extends ContextifiedUnitGenerator(emitterSettings) {
         private val scala3CodeEmitter = new CodeEmitter(emitterSettings) {
           override def CombinedTableSchemas = new CombinedTableSchemasGenWrap(_, _)
 
           class CombinedTableSchemasGenWrap(
-                                             tableColumns: TableStereotype[TableMeta, ColumnMeta],
-                                             querySchemaNaming: QuerySchemaNaming
-                                           ) extends CombinedTableSchemasGen(tableColumns, querySchemaNaming) {
+            tableColumns: TableStereotype[TableMeta, ColumnMeta],
+            querySchemaNaming: QuerySchemaNaming,
+          ) extends CombinedTableSchemasGen(tableColumns, querySchemaNaming) {
             override def objectName: Option[String] = super.objectName.map(_ + "Dao")
 
             override def body: String = {
@@ -65,7 +66,7 @@ object Codegen {
             override def QuerySchema = new QuerySchemaGenWrap(_, _)
 
             class QuerySchemaGenWrap(tableColumns: TableStereotype[TableMeta, ColumnMeta], schema: TableMeta)
-              extends QuerySchemaGen(tableColumns, schema) {
+                extends QuerySchemaGen(tableColumns, schema) {
 
               override def code: String = indent(querySchema)
             }
@@ -75,8 +76,7 @@ object Codegen {
         override def tableSchemasCode: String =
           if (isScala3) {
             scala3CodeEmitter.tableSchemasCode.notEmpty
-              .map(tsCode =>
-                s"""
+              .map(tsCode => s"""
                    |object ${traitName} {
                    |  import io.getquill.*
                    |
@@ -105,6 +105,6 @@ object Codegen {
     cm => sanitizeScalaName(naming.parseColumn(cm)),
     tm => sanitizeScalaName(naming.parseTable(tm)),
   ) {
-    override def generateQuerySchemas: Boolean           = shouldGenerateQuerySchema
+    override def generateQuerySchemas: Boolean = shouldGenerateQuerySchema
   }
 }

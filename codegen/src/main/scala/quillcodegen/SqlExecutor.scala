@@ -19,8 +19,8 @@ object SqlExecutor {
   }
 
   def executeSql(dataSource: DataSource, sql: String): Unit = {
-    val connection   = dataSource.getConnection
-    val reader       = new StringReader(sql)
+    val connection = dataSource.getConnection
+    val reader     = new StringReader(sql)
 
     try {
       createScriptRunner(connection).runScript(reader)
