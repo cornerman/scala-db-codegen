@@ -4,12 +4,12 @@ inThisBuild(
   Seq(
     organization := "com.github.cornerman",
     licenses     := Seq("MIT License" -> url("https://opensource.org/licenses/MIT")),
-    homepage     := Some(url("https://github.com/cornerman/sbt-quillcodegen")),
+    homepage     := Some(url("https://github.com/cornerman/scala-db-codegen")),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.com/cornerman/sbt-quillcodegen"),
-        "scm:git:git@github.com:cornerman/sbt-quillcodegen.git",
-        Some("scm:git:git@github.com:cornerman/sbt-quillcodegen.git"),
+        url("https://github.com/cornerman/scala-db-codegen"),
+        "scm:git:git@github.com:cornerman/scala-db-codegen.git",
+        Some("scm:git:git@github.com:cornerman/scala-db-codegen.git"),
       )
     ),
     pomExtra :=
@@ -26,16 +26,19 @@ inThisBuild(
 // TODO: Use sbt-cross to workaround: https://github.com/sbt/sbt/issues/5586
 lazy val codegen = project
   .settings(
-    name := "quillcodegen",
+    name := "scala-db-codegen",
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      // Should be same as in Codegen.scala for generated code
-      "io.getquill"     %% "quill-codegen-jdbc"   % "4.8.1",
-      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
-      "org.postgresql"   % "postgresql"           % "42.7.1",
-      "mysql"            % "mysql-connector-java" % "8.0.33",
-      "org.mariadb.jdbc" % "mariadb-java-client"  % "3.1.2",
-      "org.mybatis"      % "mybatis"              % "3.5.15",
+      "org.scala-lang"        % "scala-reflect"            % scalaVersion.value,
+      "org.scalatra.scalate" %% "scalate-core"             % "1.10.1",
+      "org.mybatis"           % "mybatis"                  % "3.5.15",
+      "org.xerial"            % "sqlite-jdbc"              % "3.44.1.0",
+      "org.postgresql"        % "postgresql"               % "42.7.1",
+      "mysql"                 % "mysql-connector-java"     % "8.0.33",
+      "org.mariadb.jdbc"      % "mariadb-java-client"      % "3.1.2",
+      "us.fatehi"             % "schemacrawler-tools"      % "16.21.1",
+      "us.fatehi"             % "schemacrawler-postgresql" % "16.21.1",
+      "us.fatehi"             % "schemacrawler-sqlite"     % "16.21.1",
+      "us.fatehi"             % "schemacrawler-mysql"      % "16.21.1",
     ),
   )
   .cross
@@ -45,7 +48,7 @@ lazy val codegen213 = codegen("2.13.13")
 
 lazy val pluginSbt = project
   .settings(
-    name               := "sbt-quillcodegen",
+    name               := "sbt-db-codegen",
     scalaVersion       := "2.12.19",
     crossScalaVersions := Seq("2.12.19"),
     sbtPlugin          := true,
@@ -55,7 +58,7 @@ lazy val pluginSbt = project
 
 lazy val pluginMill = project
   .settings(
-    name               := "mill-quillcodegen",
+    name               := "mill-db-codegen",
     scalaVersion       := "2.13.13",
     crossScalaVersions := Seq("2.13.13"),
     libraryDependencies ++= Seq(

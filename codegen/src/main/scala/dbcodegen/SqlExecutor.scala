@@ -1,13 +1,12 @@
-package quillcodegen
+package dbcodegen
 
 import com.mysql.cj.jdbc.MysqlDataSource
+import org.apache.ibatis.jdbc.ScriptRunner
 import org.mariadb.jdbc.MariaDbDataSource
 import org.postgresql.ds.PGSimpleDataSource
 import org.sqlite.SQLiteDataSource
-import org.apache.ibatis.jdbc.ScriptRunner
 
-import java.io.StringReader
-import java.io.File
+import java.io.{File, StringReader}
 import java.sql.Connection
 import javax.sql.DataSource
 import scala.io.Source
