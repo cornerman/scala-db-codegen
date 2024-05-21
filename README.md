@@ -166,7 +166,7 @@ case class ${table.scalaName}(
   #end
 )
 object ${table.scalaName} {
-  inline def query = querySchema[Person](
+  inline def query = querySchema[${table.scalaName}](
     "${table.name}",
     #for (column <- table.columns)
     _.${column.scalaName} -> "${column.name}",
