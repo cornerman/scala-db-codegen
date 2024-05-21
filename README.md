@@ -27,7 +27,7 @@ case class ${table.scalaName}(
 
 In `project/plugins.sbt`:
 ```sbt
-addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.2.0")
+addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.3.0")
 ```
 
 In `build.sbt`:
@@ -71,7 +71,7 @@ The functions `executeSql` and `executeSqlFile` are provided for these kind of u
 In `build.sc`:
 ```scala
 import mill._, scalalib._
-import $ivy.`com.github.cornerman::mill-db-codegen:0.2.0`, dbcodegen.plugin.DbCodegenModule
+import $ivy.`com.github.cornerman::mill-db-codegen:0.3.0`, dbcodegen.plugin.DbCodegenModule
 
 object backend extends ScalaModule with DbCodegenModule {
   // The jdbc URL for the database
