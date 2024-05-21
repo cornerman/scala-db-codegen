@@ -2,7 +2,24 @@
 
 A sbt-plugin and mill-plugin to generate boilerplate code from a database schema. Tested with SQLite and Postgresql. Should work for all databases supported by jdbc.
 
-The plugin can be configured to crawl a database schema to extract all tables/columns/enums. It matches the occurring jdbc/sql types to scala types. You can provide a template file to generate scala code out of this information.
+> DbSchema + Template => generate scala code
+
+The plugin can be configured to crawl a database schema to extract all tables/columns/enums. It matches the occurring jdbc/sql types to scala types.
+You can provide a [scalate](https://scalate.github.io/scalate/) template to generate scala code out of this information like this:
+```scala
+<%@ val schema: dbcodegen.DataSchema %>
+
+package kicks.db.${schema.name}
+
+#for (table <- schema.tables)
+case class ${table.scalaName}(
+  #for (column <- table.columns)
+  ${column.scalaName}: ${column.scalaType},
+  #end
+)
+#end
+```
+
 
 ## Usage
 
@@ -54,9 +71,9 @@ The functions `executeSql` and `executeSqlFile` are provided for these kind of u
 In `build.sc`:
 ```scala
 import mill._, scalalib._
-import $ivy.`com.github.cornerman::mill-db-codegen:0.2.0`, dbcodegen.plugin.QuillCodegenModule
+import $ivy.`com.github.cornerman::mill-db-codegen:0.2.0`, dbcodegen.plugin.DbCodegenModule
 
-object backend extends ScalaModule with QuillCodegenModule {
+object backend extends ScalaModule with DbCodegenModule {
   // The jdbc URL for the database
   def dbcodegenJdbcUrl       = "jdbc:sqlite:..."
   // The template file for the code generator
