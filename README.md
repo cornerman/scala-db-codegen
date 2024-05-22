@@ -23,6 +23,9 @@ case class ${table.scalaName}(
 
 ## Usage
 
+You can use the `codegen` project as a library or use the sbt and mill plugin.
+For ease of use, jdbc drivers as well as schemacrawler plugins for postgresql, mysql and sqlite are included.
+
 ### sbt
 
 In `project/plugins.sbt`:
