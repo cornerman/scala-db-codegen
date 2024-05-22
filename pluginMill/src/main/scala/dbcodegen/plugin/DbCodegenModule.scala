@@ -20,6 +20,8 @@ trait DbCodegenModule extends ScalaModule {
   def dbcodegenTypeMapping: (SQLType, Option[String]) => Option[String] = (_, tpe) => tpe
   // Filter which schema and table should be processed
   def dbcodegenSchemaTableFilter: (String, String) => Boolean = (_, _) => true
+  // Whether to run scalafmt on the generated code
+  def dbcodegenScalafmt: Boolean = true
   // Optional database username
   def dbcodegenUsername: Option[String] = None
   // Optional database password
@@ -40,6 +42,7 @@ trait DbCodegenModule extends ScalaModule {
         outDir = dbcodegenOutPath().path.toIO,
         typeMapping = dbcodegenTypeMapping,
         schemaTableFilter = dbcodegenSchemaTableFilter,
+        scalafmt = dbcodegenScalafmt,
       ),
     )
 

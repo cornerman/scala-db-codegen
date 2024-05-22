@@ -30,6 +30,7 @@ lazy val codegen = project
     libraryDependencies ++= Seq(
       "org.scala-lang"        % "scala-reflect"            % scalaVersion.value,
       "org.scalatra.scalate" %% "scalate-core"             % "1.10.1",
+      "org.scalameta" %% "scalafmt-core" % "3.8.1",
       "org.mybatis"           % "mybatis"                  % "3.5.15",
       "org.xerial"            % "sqlite-jdbc"              % "3.44.1.0",
       "org.postgresql"        % "postgresql"               % "42.7.1",

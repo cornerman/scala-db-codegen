@@ -5,6 +5,7 @@ import schemacrawler.tools.databaseconnector.{DatabaseConnectorRegistry, Databas
 import schemacrawler.tools.utility.SchemaCrawlerUtility
 import us.fatehi.utility.datasource.MultiUseUserCredentials
 import org.fusesource.scalate.{TemplateEngine, TemplateSource}
+import org.scalafmt.Scalafmt
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
@@ -22,6 +23,7 @@ case class CodeGeneratorConfig(
   outDir: File,
   typeMapping: (SQLType, Option[String]) => Option[String],
   schemaTableFilter: (String, String) => Boolean,
+  scalafmt: Boolean,
 )
 
 object CodeGenerator {
@@ -59,7 +61,9 @@ object CodeGenerator {
       )
 
       templateSources.map { templateSource =>
-        val output     = templateEngine.layout(templateSource, data)
+        val rawOutput  = templateEngine.layout(templateSource, data)
+        val formatted  = if (config.scalafmt) Scalafmt.format(rawOutput).toEither.toOption else None
+        val output     = formatted.getOrElse(rawOutput)
         val outputPath = Paths.get(config.outDir.getPath, templateSource.file.getPath, s"${dataSchema.name}.scala")
 
         Files.createDirectories(outputPath.getParent)

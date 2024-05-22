@@ -48,6 +48,8 @@ lazy val db = project
     // dbcodegenTypeMapping       := (sqlType: SQLType, scalaType: Option[String]) => scalaType,
     // Filter which schema and table should be processed
     // dbcodegenSchemaTableFilter := (schema: String, table: String) => true
+    // Whether to run scalafmt on the generated code
+    // dbcodegenScalafmt := true
     // Setup task to be executed before the code generation runs against the database
     // dbcodegenSetupTask         := {},
   )
@@ -92,6 +94,8 @@ object backend extends ScalaModule with DbCodegenModule {
   // def dbcodegenTypeMapping = (sqlType: SQLType, scalaType: Option[String]) => scalaType
   // Filter which schema and table should be processed
   // def dbcodegenSchemaTableFilter = (schema: String, table: String) => true
+  // Whether to run scalafmt on the generated code
+  // def dbcodegenScalafmt = true
 }
 ```
 

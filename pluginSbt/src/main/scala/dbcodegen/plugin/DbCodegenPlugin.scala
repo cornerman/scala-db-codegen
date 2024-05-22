@@ -21,6 +21,8 @@ object DbCodegenPlugin extends AutoPlugin {
       settingKey[(SQLType, Option[String]) => Option[String]]("Map jdbc types to java/scala types")
     val dbcodegenSchemaTableFilter =
       settingKey[(String, String) => Boolean]("Filter which schema and table should be processed")
+    val dbcodegenScalafmt =
+      settingKey[Boolean]("Whether to run scalafmt on the generated code")
     val dbcodegenUsername =
       settingKey[Option[String]]("Optional database username")
     val dbcodegenPassword =
@@ -45,6 +47,7 @@ object DbCodegenPlugin extends AutoPlugin {
     dbcodegenTemplateFiles     := Seq.empty,
     dbcodegenTypeMapping       := ((_, tpe) => tpe),
     dbcodegenSchemaTableFilter := ((_, _) => true),
+    dbcodegenScalafmt          := true,
     dbcodegenUsername          := None,
     dbcodegenPassword          := None,
     (Compile / sourceGenerators) += Def.task {
@@ -64,6 +67,7 @@ object DbCodegenPlugin extends AutoPlugin {
           outDir = outDir,
           typeMapping = dbcodegenTypeMapping.value,
           schemaTableFilter = dbcodegenSchemaTableFilter.value,
+          scalafmt = dbcodegenScalafmt.value,
         ),
       )
 
