@@ -46,8 +46,9 @@ trait DbCodegenModule extends ScalaModule {
       scalaVersion = scalaVersion(),
     )
 
+    val setupTask = dbcodegenSetupTask()
     Using.resource(DbConnection.getSource(dbConfig)) { connectionSource =>
-      val _ = dbcodegenSetupTask().apply(Db(connectionSource))
+      setupTask(Db(connectionSource))
 
       val generatedFiles = CodeGenerator.generate(connectionSource, codeGeneratorConfig)
 

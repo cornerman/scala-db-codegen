@@ -9,19 +9,6 @@ import java.io.File
 import java.sql.{Connection, SQLType}
 import scala.util.Using
 
-trait Db {
-  def connection: Connection
-  def executeSql(sql: String): Unit
-  def executeSqlFile(file: File): Unit
-}
-object Db {
-  def apply(source: DatabaseConnectionSource): Db = new Db {
-    lazy val connection                  = source.get()
-    def executeSql(sql: String): Unit    = SqlExecutor.executeSql(connection, sql)
-    def executeSqlFile(file: File): Unit = SqlExecutor.executeSqlFile(connection, file)
-  }
-}
-
 object DbCodegenPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
@@ -71,8 +58,9 @@ object DbCodegenPlugin extends AutoPlugin {
         scalaVersion = scalaVersion.value,
       )
 
+      val setupTask = dbcodegenSetupTask.value
       Using.resource(DbConnection.getSource(dbConfig)) { connectionSource =>
-        val _ = dbcodegenSetupTask.value(Db(connectionSource))
+        setupTask(Db(connectionSource))
 
         // TODO: caching?
         val generatedFiles = CodeGenerator.generate(connectionSource, codeGeneratorConfig)
@@ -81,4 +69,17 @@ object DbCodegenPlugin extends AutoPlugin {
       }
     }.taskValue,
   )
+}
+
+trait Db {
+  def connection: Connection
+  def executeSql(sql: String): Unit
+  def executeSqlFile(file: File): Unit
+}
+object Db {
+  def apply(source: DatabaseConnectionSource): Db = new Db {
+    lazy val connection                  = source.get()
+    def executeSql(sql: String): Unit    = SqlExecutor.executeSql(connection, sql)
+    def executeSqlFile(file: File): Unit = SqlExecutor.executeSqlFile(connection, file)
+  }
 }
