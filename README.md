@@ -79,14 +79,19 @@ import mill._, scalalib._
 import $ivy.`com.github.cornerman::mill-db-codegen:0.3.1`, dbcodegen.plugin._
 
 object backend extends ScalaModule with DbCodegenModule {
+  // sources to trigger reloads when a file changes
+  def dbTemplateFile         = T.source(os.pwd / "schema.scala.ssp")
+  def dbSchemaFile           = T.source(os.pwd / "schema.sql")
+
   // The template file for the code generator
-  def dbcodegenTemplateFiles = Seq(PathRef(os.pwd / "schema.scala.ssp"))
+  def dbcodegenTemplateFiles = T { Seq(dbTemplateFile()) }
   // The jdbc URL for the database
   def dbcodegenJdbcUrl       = "jdbc:sqlite:file::memory:?cache=shared"
   // Setup task to be executed before the code generation runs against the database
   def dbcodegenSetupTask = T.task { (db: Db) =>
-    db.executeSqlFile(os.pwd / "schema.sql")
+    db.executeSqlFile(dbSchemaFile())
   }
+
   // Optional database username
   // def dbcodegenUsername = None
   // Optional database password

@@ -13,7 +13,7 @@ trait DbCodegenModule extends ScalaModule {
   // The jdbc URL for the database
   def dbcodegenJdbcUrl: String
   // The template file for the code generator
-  def dbcodegenTemplateFiles: Seq[PathRef] = Seq.empty
+  def dbcodegenTemplateFiles: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
   // Output path for the generated code
   def dbcodegenOutPath: T[PathRef] = T { PathRef(T.ctx().dest / "scala") }
   // Setup task to be executed before the code generation runs against the database
@@ -38,7 +38,7 @@ trait DbCodegenModule extends ScalaModule {
     )
 
     val codeGeneratorConfig = CodeGeneratorConfig(
-      templateFiles = dbcodegenTemplateFiles.map(_.path.toIO),
+      templateFiles = dbcodegenTemplateFiles().map(_.path.toIO),
       outDir = dbcodegenOutPath().path.toIO,
       typeMapping = dbcodegenTypeMapping,
       schemaTableFilter = dbcodegenSchemaTableFilter,
