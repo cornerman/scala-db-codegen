@@ -39,6 +39,7 @@ trait DbCodegenModule extends ScalaModule {
         typeMapping = dbcodegenTypeMapping,
         schemaTableFilter = dbcodegenSchemaTableFilter,
         scalafmt = dbcodegenScalafmt,
+        scalaVersion = scalaVersion(),
       ),
     )
 

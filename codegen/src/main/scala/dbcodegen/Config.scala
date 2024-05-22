@@ -15,4 +15,5 @@ case class CodeGeneratorConfig(
   typeMapping: (SQLType, Option[String]) => Option[String],
   schemaTableFilter: (String, String) => Boolean,
   scalafmt: Boolean,
+  scalaVersion: String,
 )

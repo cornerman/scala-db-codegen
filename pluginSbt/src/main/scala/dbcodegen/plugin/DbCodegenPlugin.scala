@@ -62,6 +62,7 @@ object DbCodegenPlugin extends AutoPlugin {
           typeMapping = dbcodegenTypeMapping.value,
           schemaTableFilter = dbcodegenSchemaTableFilter.value,
           scalafmt = dbcodegenScalafmt.value,
+          scalaVersion = scalaVersion.value,
         ),
       )
 

@@ -2,11 +2,13 @@ package dbcodegen
 
 import org.fusesource.scalate.{TemplateEngine, TemplateSource}
 import org.scalafmt.Scalafmt
+import org.scalafmt.config.ScalafmtConfig
 import schemacrawler.schemacrawler._
 import schemacrawler.tools.utility.SchemaCrawlerUtility
 
 import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters._
+import scala.meta.dialects
 
 object CodeGenerator {
   def generate(db: DbConfig, config: CodeGeneratorConfig): Seq[Path] = {
@@ -38,8 +40,13 @@ object CodeGenerator {
       )
 
       templateSources.map { templateSource =>
-        val rawOutput  = templateEngine.layout(templateSource, data)
-        val formatted  = if (config.scalafmt) Scalafmt.format(rawOutput).toEither.toOption else None
+        val rawOutput = templateEngine.layout(templateSource, data)
+
+        val formatted = if (config.scalafmt) {
+          val scalafmtConfig = ScalafmtConfig.default.withDialect(scalaVersionToScalafmtDialect(config.scalaVersion))
+          Scalafmt.format(rawOutput, scalafmtConfig).toEither.toOption
+        } else None
+
         val output     = formatted.getOrElse(rawOutput)
         val outputPath = Paths.get(config.outDir.getPath, templateSource.file.getPath, s"${dataSchema.name}.scala")
 
@@ -51,4 +58,8 @@ object CodeGenerator {
     }.toSeq
   }
 
+  def scalaVersionToScalafmtDialect(scalaVersion: String) = scalaVersion match {
+    case v if v.startsWith("3.") => dialects.Scala3
+    case _                       => dialects.Scala
+  }
 }
