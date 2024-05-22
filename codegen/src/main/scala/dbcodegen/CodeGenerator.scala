@@ -18,7 +18,7 @@ object CodeGenerator {
 
     val schemaCrawlerOptions = SchemaCrawlerOptionsBuilder
       .newSchemaCrawlerOptions()
-      .withLoadOptions(LoadOptionsBuilder.builder().toOptions)
+      .withLoadOptions(LoadOptionsBuilder.builder().withInfoLevel(InfoLevel.maximum).toOptions)
       .withLimitOptions(LimitOptionsBuilder.builder().toOptions)
 
     val catalog = SchemaCrawlerUtility.getCatalog(connectionSource, schemaCrawlerOptions)
