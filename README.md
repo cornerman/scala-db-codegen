@@ -30,7 +30,7 @@ For ease of use, jdbc drivers as well as schemacrawler plugins for postgresql, m
 
 In `project/plugins.sbt`:
 ```sbt
-addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.3.1")
+addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.4.0")
 ```
 
 In `build.sbt`:
@@ -76,7 +76,7 @@ The functions `executeSql` and `executeSqlFile` are provided for these kind of u
 In `build.sc`:
 ```scala
 import mill._, scalalib._
-import $ivy.`com.github.cornerman::mill-db-codegen:0.3.1`, dbcodegen.plugin._
+import $ivy.`com.github.cornerman::mill-db-codegen:0.4.0`, dbcodegen.plugin._
 
 object backend extends ScalaModule with DbCodegenModule {
   // sources to trigger reloads when a file changes
