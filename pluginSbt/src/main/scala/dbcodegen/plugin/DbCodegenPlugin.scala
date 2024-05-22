@@ -3,16 +3,31 @@ package dbcodegen.plugin
 import sbt.{io as _, *}
 import sbt.Keys.*
 import dbcodegen.*
+import us.fatehi.utility.datasource.DatabaseConnectionSource
 
 import java.io.File
-import java.sql.SQLType
+import java.sql.{Connection, SQLType}
+import scala.util.Using
+
+trait Db {
+  def connection: Connection
+  def executeSql(sql: String): Unit
+  def executeSqlFile(file: File): Unit
+}
+object Db {
+  def apply(source: DatabaseConnectionSource): Db = new Db {
+    lazy val connection                  = source.get()
+    def executeSql(sql: String): Unit    = SqlExecutor.executeSql(connection, sql)
+    def executeSqlFile(file: File): Unit = SqlExecutor.executeSqlFile(connection, file)
+  }
+}
 
 object DbCodegenPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
   object autoImport {
     val dbcodegenSetupTask =
-      taskKey[Unit]("Setup task to be executed before the code generation runs against the database")
+      taskKey[Db => Unit]("Setup task to be executed before the code generation runs against the database")
     val dbcodegenJdbcUrl =
       settingKey[String]("The jdbc URL for the database")
     val dbcodegenTemplateFiles =
@@ -27,21 +42,11 @@ object DbCodegenPlugin extends AutoPlugin {
       settingKey[Option[String]]("Optional database username")
     val dbcodegenPassword =
       settingKey[Option[String]]("Optional database password")
-
-    def executeSql(sql: String): Def.Initialize[Task[Unit]] = Def.task {
-      val connectionSource = DbConnection.getSource(dbConfig.value)
-      SqlExecutor.executeSql(connectionSource.get(), sql)
-    }
-
-    def executeSqlFile(file: File): Def.Initialize[Task[Unit]] = Def.task {
-      val connectionSource = DbConnection.getSource(dbConfig.value)
-      SqlExecutor.executeSqlFile(connectionSource.get(), file)
-    }
   }
   import autoImport._
 
   override lazy val projectSettings: Seq[Def.Setting[_]] = Seq(
-    dbcodegenSetupTask         := {},
+    dbcodegenSetupTask         := { _ => () },
     dbcodegenTemplateFiles     := Seq.empty,
     dbcodegenTypeMapping       := ((_, tpe) => tpe),
     dbcodegenSchemaTableFilter := ((_, _) => true),
@@ -51,30 +56,29 @@ object DbCodegenPlugin extends AutoPlugin {
     (Compile / sourceGenerators) += Def.task {
       val outDir = (Compile / sourceManaged).value / "scala" / "dbcodegen"
 
-      val _ = dbcodegenSetupTask.value
-
-      // TODO: caching?
-      val generatedFiles = CodeGenerator.generate(
-        dbConfig.value,
-        CodeGeneratorConfig(
-          templateFiles = dbcodegenTemplateFiles.value,
-          outDir = outDir,
-          typeMapping = dbcodegenTypeMapping.value,
-          schemaTableFilter = dbcodegenSchemaTableFilter.value,
-          scalafmt = dbcodegenScalafmt.value,
-          scalaVersion = scalaVersion.value,
-        ),
+      val dbConfig = DbConfig(
+        jdbcUrl = dbcodegenJdbcUrl.value,
+        username = dbcodegenUsername.value,
+        password = dbcodegenPassword.value,
       )
 
-      generatedFiles.map(_.toFile)
+      val codeGeneratorConfig = CodeGeneratorConfig(
+        templateFiles = dbcodegenTemplateFiles.value,
+        outDir = outDir,
+        typeMapping = dbcodegenTypeMapping.value,
+        schemaTableFilter = dbcodegenSchemaTableFilter.value,
+        scalafmt = dbcodegenScalafmt.value,
+        scalaVersion = scalaVersion.value,
+      )
+
+      Using.resource(DbConnection.getSource(dbConfig)) { connectionSource =>
+        val _ = dbcodegenSetupTask.value(Db(connectionSource))
+
+        // TODO: caching?
+        val generatedFiles = CodeGenerator.generate(connectionSource, codeGeneratorConfig)
+
+        generatedFiles.map(_.toFile)
+      }
     }.taskValue,
   )
-
-  private val dbConfig = Def.task {
-    DbConfig(
-      jdbcUrl = dbcodegenJdbcUrl.value,
-      username = dbcodegenUsername.value,
-      password = dbcodegenPassword.value,
-    )
-  }
 }

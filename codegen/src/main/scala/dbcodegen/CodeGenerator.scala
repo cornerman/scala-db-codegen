@@ -5,16 +5,15 @@ import org.scalafmt.Scalafmt
 import org.scalafmt.config.ScalafmtConfig
 import schemacrawler.schemacrawler._
 import schemacrawler.tools.utility.SchemaCrawlerUtility
+import us.fatehi.utility.datasource.DatabaseConnectionSource
 
 import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters._
 import scala.meta.dialects
 
 object CodeGenerator {
-  def generate(db: DbConfig, config: CodeGeneratorConfig): Seq[Path] = {
+  def generate(connectionSource: DatabaseConnectionSource, config: CodeGeneratorConfig): Seq[Path] = {
     // schema crawler options
-
-    val connectionSource = DbConnection.getSource(db)
 
     val schemaCrawlerOptions = SchemaCrawlerOptionsBuilder
       .newSchemaCrawlerOptions()

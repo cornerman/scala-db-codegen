@@ -38,10 +38,10 @@ In `build.sbt`:
 lazy val db = project
   .enablePlugins(dbcodegen.plugin.DbCodegenPlugin)
   .settings(
-    // The jdbc URL for the database
-    dbcodegenJdbcUrl := "jdbc:...",
     // The template file for the code generator
     dbcodegenTemplateFiles := Seq(file("schema.scala.ssp"))
+    // The jdbc URL for the database
+    dbcodegenJdbcUrl := "jdbc:...",
 
     // Optional database username
     // dbcodegenUsername          := None,
@@ -54,7 +54,7 @@ lazy val db = project
     // Whether to run scalafmt on the generated code
     // dbcodegenScalafmt := true
     // Setup task to be executed before the code generation runs against the database
-    // dbcodegenSetupTask         := {},
+    // dbcodegenSetupTask         := { _ => () },
   )
 ```
 
@@ -62,9 +62,9 @@ lazy val db = project
 
 An example for using the `dbcodegenSetupTask` to setup an sqlite database with a `schema.sql` file before the code generation runs:
 ```sbt
-dbcodegenSetupTask := Def.taskDyn {
-    IO.delete(file(dbcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-    executeSqlFile(file("./schema.sql"))
+dbcodegenJdbcUrl := "jdbc:sqlite:file::memory:?cache=shared",
+dbcodegenSetupTask := { db =>
+  db.executeSqlFile(file("./schema.sql"))
 }
 ```
 
@@ -76,18 +76,16 @@ The functions `executeSql` and `executeSqlFile` are provided for these kind of u
 In `build.sc`:
 ```scala
 import mill._, scalalib._
-import $ivy.`com.github.cornerman::mill-db-codegen:0.3.1`, dbcodegen.plugin.DbCodegenModule
+import $ivy.`com.github.cornerman::mill-db-codegen:0.3.1`, dbcodegen.plugin._
 
 object backend extends ScalaModule with DbCodegenModule {
-  // The jdbc URL for the database
-  def dbcodegenJdbcUrl       = "jdbc:sqlite:..."
   // The template file for the code generator
   def dbcodegenTemplateFiles = Seq(PathRef(os.pwd / "schema.scala.ssp"))
+  // The jdbc URL for the database
+  def dbcodegenJdbcUrl       = "jdbc:sqlite:file::memory:?cache=shared"
   // Setup task to be executed before the code generation runs against the database
-  def dbcodegenSetupTask = T.task {
-    val dbpath = dbcodegenJdbcUrl.stripPrefix("jdbc:sqlite:")
-    os.remove(os.pwd / dbpath)
-    executeSqlFile(PathRef(os.pwd / "schema.sql"))
+  def dbcodegenSetupTask = T.task { (db: Db) =>
+    db.executeSqlFile(os.pwd / "schema.sql")
   }
   // Optional database username
   // def dbcodegenUsername = None

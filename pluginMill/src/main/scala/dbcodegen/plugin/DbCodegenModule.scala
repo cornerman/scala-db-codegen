@@ -3,8 +3,10 @@ package dbcodegen.plugin
 import mill._
 import scalalib._
 import dbcodegen._
+import us.fatehi.utility.datasource.DatabaseConnectionSource
 
-import java.sql.SQLType
+import java.sql.{Connection, SQLType}
+import scala.util.Using
 
 trait DbCodegenModule extends ScalaModule {
 
@@ -15,7 +17,7 @@ trait DbCodegenModule extends ScalaModule {
   // Output path for the generated code
   def dbcodegenOutPath: T[PathRef] = T { PathRef(T.ctx().dest / "scala") }
   // Setup task to be executed before the code generation runs against the database
-  def dbcodegenSetupTask: Task[Unit] = T.task { () }
+  def dbcodegenSetupTask: Task[Db => Unit] = T.task { (_: Db) => () }
   // Map jdbc types to java/scala types
   def dbcodegenTypeMapping: (SQLType, Option[String]) => Option[String] = (_, tpe) => tpe
   // Filter which schema and table should be processed
@@ -29,41 +31,46 @@ trait DbCodegenModule extends ScalaModule {
 
   def dbcodegen: Task[Seq[PathRef]] = T.task {
 
-    val _ = dbcodegenSetupTask()
-
-    val generatedFiles = CodeGenerator.generate(
-      dbConfig,
-      CodeGeneratorConfig(
-        templateFiles = dbcodegenTemplateFiles.map(_.path.toIO),
-        outDir = dbcodegenOutPath().path.toIO,
-        typeMapping = dbcodegenTypeMapping,
-        schemaTableFilter = dbcodegenSchemaTableFilter,
-        scalafmt = dbcodegenScalafmt,
-        scalaVersion = scalaVersion(),
-      ),
+    val dbConfig = DbConfig(
+      jdbcUrl = dbcodegenJdbcUrl,
+      username = dbcodegenUsername,
+      password = dbcodegenPassword,
     )
 
-    generatedFiles.map(f => PathRef(os.Path(f.toFile)))
+    val codeGeneratorConfig = CodeGeneratorConfig(
+      templateFiles = dbcodegenTemplateFiles.map(_.path.toIO),
+      outDir = dbcodegenOutPath().path.toIO,
+      typeMapping = dbcodegenTypeMapping,
+      schemaTableFilter = dbcodegenSchemaTableFilter,
+      scalafmt = dbcodegenScalafmt,
+      scalaVersion = scalaVersion(),
+    )
+
+    Using.resource(DbConnection.getSource(dbConfig)) { connectionSource =>
+      val _ = dbcodegenSetupTask().apply(Db(connectionSource))
+
+      val generatedFiles = CodeGenerator.generate(connectionSource, codeGeneratorConfig)
+
+      generatedFiles.map(f => PathRef(os.Path(f.toFile)))
+    }
+
   }
 
   override def generatedSources: T[Seq[PathRef]] = T {
     val scalaOutput = dbcodegen()
     scalaOutput ++ super.generatedSources()
   }
+}
 
-  def executeSql(sql: String): Unit = {
-    val connectionSource = DbConnection.getSource(dbConfig)
-    SqlExecutor.executeSql(connectionSource.get(), sql)
+trait Db {
+  def connection: Connection
+  def executeSql(sql: String): Unit
+  def executeSqlFile(file: PathRef): Unit
+}
+object Db {
+  def apply(source: DatabaseConnectionSource): Db = new Db {
+    lazy val connection                     = source.get()
+    def executeSql(sql: String): Unit       = SqlExecutor.executeSql(connection, sql)
+    def executeSqlFile(file: PathRef): Unit = SqlExecutor.executeSqlFile(connection, file.path.toIO)
   }
-
-  def executeSqlFile(file: PathRef): Unit = {
-    val connectionSource = DbConnection.getSource(dbConfig)
-    SqlExecutor.executeSqlFile(connectionSource.get(), file.path.toIO)
-  }
-
-  private def dbConfig = DbConfig(
-    jdbcUrl = dbcodegenJdbcUrl,
-    username = dbcodegenUsername,
-    password = dbcodegenPassword,
-  )
 }
