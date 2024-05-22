@@ -62,7 +62,6 @@ object DbCodegenPlugin extends AutoPlugin {
       Using.resource(DbConnection.getSource(dbConfig)) { connectionSource =>
         setupTask(Db(connectionSource))
 
-        // TODO: caching?
         val generatedFiles = CodeGenerator.generate(connectionSource, codeGeneratorConfig)
 
         generatedFiles.map(_.toFile)
