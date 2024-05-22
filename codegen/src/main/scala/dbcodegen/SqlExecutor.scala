@@ -9,16 +9,15 @@ import scala.util.Using
 import scala.util.chaining._
 
 object SqlExecutor {
-  def executeSqlFile(connection: Connection, file: File): Unit = {
-    executeSql(connection, Source.fromFile(file).mkString)
-  }
+  def executeSqlFile(connection: Connection, file: File): Unit =
+    Using.resource(Source.fromFile(file)) { fileSource =>
+      executeSql(connection, fileSource.mkString)
+    }
 
-  def executeSql(connection: Connection, sql: String): Unit = {
-    val reader = new StringReader(sql)
-    Using.resource(reader) { reader =>
+  def executeSql(connection: Connection, sql: String): Unit =
+    Using.resource(new StringReader(sql)) { reader =>
       createScriptRunner(connection).runScript(reader)
     }
-  }
 
   private def createScriptRunner(connection: Connection) =
     new ScriptRunner(connection)
