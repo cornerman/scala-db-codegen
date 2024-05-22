@@ -29,15 +29,13 @@ object DbCodegenPlugin extends AutoPlugin {
       settingKey[Option[String]]("Optional database password")
 
     def executeSql(sql: String): Def.Initialize[Task[Unit]] = Def.task {
-      val dataSource =
-        SqlExecutor.getDataSource(dbcodegenJdbcUrl.value, username = dbcodegenUsername.value, password = dbcodegenPassword.value)
-      SqlExecutor.executeSql(dataSource, sql)
+      val connectionSource = DbConnection.getSource(dbConfig.value)
+      SqlExecutor.executeSql(connectionSource.get(), sql)
     }
 
     def executeSqlFile(file: File): Def.Initialize[Task[Unit]] = Def.task {
-      val dataSource =
-        SqlExecutor.getDataSource(dbcodegenJdbcUrl.value, username = dbcodegenUsername.value, password = dbcodegenPassword.value)
-      SqlExecutor.executeSqlFile(dataSource, file)
+      val connectionSource = DbConnection.getSource(dbConfig.value)
+      SqlExecutor.executeSqlFile(connectionSource.get(), file)
     }
   }
   import autoImport._
@@ -57,11 +55,7 @@ object DbCodegenPlugin extends AutoPlugin {
 
       // TODO: caching?
       val generatedFiles = CodeGenerator.generate(
-        DbConfig(
-          jdbcUrl = dbcodegenJdbcUrl.value,
-          username = dbcodegenUsername.value,
-          password = dbcodegenPassword.value,
-        ),
+        dbConfig.value,
         CodeGeneratorConfig(
           templateFiles = dbcodegenTemplateFiles.value,
           outDir = outDir,
@@ -74,4 +68,12 @@ object DbCodegenPlugin extends AutoPlugin {
       generatedFiles.map(_.toFile)
     }.taskValue,
   )
+
+  private val dbConfig = Def.task {
+    DbConfig(
+      jdbcUrl = dbcodegenJdbcUrl.value,
+      username = dbcodegenUsername.value,
+      password = dbcodegenPassword.value,
+    )
+  }
 }

@@ -32,11 +32,7 @@ trait DbCodegenModule extends ScalaModule {
     val _ = dbcodegenSetupTask()
 
     val generatedFiles = CodeGenerator.generate(
-      DbConfig(
-        jdbcUrl = dbcodegenJdbcUrl,
-        username = dbcodegenUsername,
-        password = dbcodegenPassword,
-      ),
+      dbConfig,
       CodeGeneratorConfig(
         templateFiles = dbcodegenTemplateFiles.map(_.path.toIO),
         outDir = dbcodegenOutPath().path.toIO,
@@ -55,14 +51,18 @@ trait DbCodegenModule extends ScalaModule {
   }
 
   def executeSql(sql: String): Unit = {
-    val dataSource =
-      SqlExecutor.getDataSource(dbcodegenJdbcUrl, username = dbcodegenUsername, password = dbcodegenPassword)
-    SqlExecutor.executeSql(dataSource, sql)
+    val connectionSource = DbConnection.getSource(dbConfig)
+    SqlExecutor.executeSql(connectionSource.get(), sql)
   }
 
   def executeSqlFile(file: PathRef): Unit = {
-    val dataSource =
-      SqlExecutor.getDataSource(dbcodegenJdbcUrl, username = dbcodegenUsername, password = dbcodegenPassword)
-    SqlExecutor.executeSqlFile(dataSource, file.path.toIO)
+    val connectionSource = DbConnection.getSource(dbConfig)
+    SqlExecutor.executeSqlFile(connectionSource.get(), file.path.toIO)
   }
+
+  private def dbConfig = DbConfig(
+    jdbcUrl = dbcodegenJdbcUrl,
+    username = dbcodegenUsername,
+    password = dbcodegenPassword,
+  )
 }

@@ -1,48 +1,25 @@
 package dbcodegen
 
-import schemacrawler.schemacrawler._
-import schemacrawler.tools.databaseconnector.{DatabaseConnectorRegistry, DatabaseUrlConnectionOptions}
-import schemacrawler.tools.utility.SchemaCrawlerUtility
-import us.fatehi.utility.datasource.MultiUseUserCredentials
 import org.fusesource.scalate.{TemplateEngine, TemplateSource}
 import org.scalafmt.Scalafmt
+import schemacrawler.schemacrawler._
+import schemacrawler.tools.utility.SchemaCrawlerUtility
 
-import java.io.File
 import java.nio.file.{Files, Path, Paths}
-import java.sql.SQLType
 import scala.jdk.CollectionConverters._
-
-case class DbConfig(
-  jdbcUrl: String,
-  username: Option[String],
-  password: Option[String],
-)
-
-case class CodeGeneratorConfig(
-  templateFiles: Seq[File],
-  outDir: File,
-  typeMapping: (SQLType, Option[String]) => Option[String],
-  schemaTableFilter: (String, String) => Boolean,
-  scalafmt: Boolean,
-)
 
 object CodeGenerator {
   def generate(db: DbConfig, config: CodeGeneratorConfig): Seq[Path] = {
     // schema crawler options
 
-    val credentials = new MultiUseUserCredentials(db.username.orNull, db.password.orNull)
-    val connection =
-      DatabaseConnectorRegistry
-        .getDatabaseConnectorRegistry()
-        .findDatabaseConnectorFromUrl(db.jdbcUrl)
-        .newDatabaseConnectionSource(new DatabaseUrlConnectionOptions(db.jdbcUrl), credentials)
+    val connectionSource = DbConnection.getSource(db)
 
     val schemaCrawlerOptions = SchemaCrawlerOptionsBuilder
       .newSchemaCrawlerOptions()
-      .withLoadOptions(LoadOptionsBuilder.builder().withInfoLevel(InfoLevel.maximum).toOptions)
+      .withLoadOptions(LoadOptionsBuilder.builder().toOptions)
       .withLimitOptions(LimitOptionsBuilder.builder().toOptions)
 
-    val catalog = SchemaCrawlerUtility.getCatalog(connection, schemaCrawlerOptions)
+    val catalog = SchemaCrawlerUtility.getCatalog(connectionSource, schemaCrawlerOptions)
 
     // scalate
 
@@ -52,7 +29,7 @@ object CodeGenerator {
     // run template on schemas
 
     val dataSchemas = catalog.getSchemas.asScala.map { schema =>
-      SchemaConverter.toDataSchema(schema, connection, catalog.getTables(schema).asScala.toSeq, config)
+      SchemaConverter.toDataSchema(schema, connectionSource, catalog.getTables(schema).asScala.toSeq, config)
     }
 
     dataSchemas.flatMap { dataSchema =>
