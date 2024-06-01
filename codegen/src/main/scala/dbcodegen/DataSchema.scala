@@ -1,6 +1,6 @@
 package dbcodegen
 
-import schemacrawler.schema.{Column, Schema, Table}
+import schemacrawler.schema.{Column, Index, Schema, Table, View}
 
 case class DataColumn(
   name: String,
@@ -10,13 +10,22 @@ case class DataColumn(
   def scalaName = NameFormat.sanitizeScalaName(NameFormat.toCamelCase(name))
 }
 
+case class DataIndex(
+  name: String,
+  columns: Seq[DataColumn],
+  db: Index,
+) {
+  def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
+}
+
 case class DataTable(
   name: String,
   columns: Seq[DataColumn],
-  isView: Boolean,
+  indices: Seq[DataIndex],
   db: Table,
 ) {
-  def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
+  def isView: Boolean = db.isInstanceOf[View]
+  def scalaName       = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
 }
 
 case class DataEnumValue(

@@ -34,10 +34,22 @@ object SchemaConverter {
           (dataColumn, dataEnum)
         }.unzip
 
+        val columnsMap = columns.map(c => c.name -> c).toMap
+
+        val indices = table.getIndexes.asScala.map { index =>
+          val indexColumns = index.getColumns.asScala.map(column => columnsMap(column.getName))
+
+          DataIndex(
+            index.getShortName.stripPrefix(table.getName + "."),
+            indexColumns.toSeq,
+            index,
+          )
+        }
+
         val dataTable = DataTable(
           table.getName,
           columns.toSeq,
-          isView = table.isInstanceOf[View],
+          indices.toSeq,
           table,
         )
 
