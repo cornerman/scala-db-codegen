@@ -37,6 +37,7 @@ object SchemaConverter {
         val dataTable = DataTable(
           table.getName,
           columns.toSeq,
+          isView = table.isInstanceOf[View],
           table,
         )
 

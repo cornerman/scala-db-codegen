@@ -13,6 +13,7 @@ case class DataColumn(
 case class DataTable(
   name: String,
   columns: Seq[DataColumn],
+  isView: Boolean,
   db: Table,
 ) {
   def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))

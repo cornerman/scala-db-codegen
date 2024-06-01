@@ -217,14 +217,20 @@ object ${table.scalaName} {
   #{ val primaryKeyColumns = table.columns.filter(_.db.isPartOfPrimaryKey)}#
   type Id = ${if (primaryKeyColumns.isEmpty) "Null" else primaryKeyColumns.map(_.scalaType).mkString("(", ", ", ")")}
 
+  #if (!table.isView)
   case class Creator(
     #for (column <- table.columns if !column.db.isGenerated && !column.db.hasDefaultValue && !column.db.isAutoIncremented)
     ${column.scalaName}: ${column.scalaType},
     #end
   )
+  #end
 }
 
+#if (table.isView)
+val ${table.scalaName}Repo = ImmutableRepo[${table.scalaName}, ${table.scalaName}.Id]
+#else
 val ${table.scalaName}Repo = Repo[${table.scalaName}.Creator, ${table.scalaName}, ${table.scalaName}.Id]
+#end
 
 #end
 ```
