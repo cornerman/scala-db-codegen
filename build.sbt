@@ -63,9 +63,9 @@ lazy val pluginMill = project
     scalaVersion       := "2.13.13",
     crossScalaVersions := Seq("2.13.13"),
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "mill-main"     % "0.11.7",
-      "com.lihaoyi" %% "mill-main-api" % "0.11.7",
-      "com.lihaoyi" %% "mill-scalalib" % "0.11.7",
+      "com.lihaoyi" %% "mill-main"     % "0.11.7-86-18d144",
+      "com.lihaoyi" %% "mill-main-api" % "0.11.7-86-18d144",
+      "com.lihaoyi" %% "mill-scalalib" % "0.11.7-86-18d144",
     ),
   )
   .dependsOn(codegen213)
