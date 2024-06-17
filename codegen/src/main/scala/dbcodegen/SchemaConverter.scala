@@ -107,7 +107,7 @@ object SchemaConverter {
 
     val scalaTypeWithArray = if (arrayElementType.isDefined) s"Vector[${baseScalaType}]" else baseScalaType
 
-    val scalaType = if (column.isNullable) s"Option[${scalaTypeWithArray}]" else scalaTypeWithArray
+    val scalaType = if (column.isNullable && !column.isPartOfPrimaryKey) s"Option[${scalaTypeWithArray}]" else scalaTypeWithArray
 
     (scalaType, dataEnum)
   }
