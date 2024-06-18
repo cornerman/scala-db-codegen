@@ -1,12 +1,15 @@
 package dbcodegen
 
-import org.apache.ibatis.jdbc.ScriptRunner
+import org.flywaydb.core.api.configuration.ClassicConfiguration
+import org.flywaydb.core.internal.database.DatabaseTypeRegister
+import org.flywaydb.core.internal.parser.ParsingContext
+import org.flywaydb.core.internal.resource.StringResource
 
-import java.io.{File, StringReader}
+import java.io.File
 import java.sql.Connection
 import scala.io.Source
+import scala.jdk.CollectionConverters._
 import scala.util.Using
-import scala.util.chaining._
 
 object SqlExecutor {
   def executeSqlFile(connection: Connection, file: File): Unit =
@@ -14,15 +17,14 @@ object SqlExecutor {
       executeSql(connection, fileSource.mkString)
     }
 
-  def executeSql(connection: Connection, sql: String): Unit =
-    Using.resource(new StringReader(sql)) { reader =>
-      createScriptRunner(connection).runScript(reader)
-    }
-
-  private def createScriptRunner(connection: Connection) =
-    new ScriptRunner(connection)
-      .tap(_.setStopOnError(true))
-      .tap(_.setSendFullScript(false))
-      .tap(_.setAutoCommit(true))
-      .tap(_.setRemoveCRs(true))
+  def executeSql(connection: Connection, sql: String): Unit = {
+    val databaseType = DatabaseTypeRegister.getDatabaseTypeForConnection(connection)
+    val factory = databaseType.createSqlScriptFactory(new ClassicConfiguration(), new ParsingContext())
+    val resource = new StringResource(sql)
+    val sqlScript = factory.createSqlScript(resource, false, null)
+    val statement = connection.createStatement()
+    sqlScript.getSqlStatements.asScala.foreach(sqlStatement =>
+      statement.execute(sqlStatement.getSql)
+    )
+  }
 }
