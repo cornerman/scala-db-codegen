@@ -19,12 +19,11 @@ object SqlExecutor {
 
   def executeSql(connection: Connection, sql: String): Unit = {
     val databaseType = DatabaseTypeRegister.getDatabaseTypeForConnection(connection)
-    val factory = databaseType.createSqlScriptFactory(new ClassicConfiguration(), new ParsingContext())
-    val resource = new StringResource(sql)
-    val sqlScript = factory.createSqlScript(resource, false, null)
-    val statement = connection.createStatement()
-    sqlScript.getSqlStatements.asScala.foreach(sqlStatement =>
-      statement.execute(sqlStatement.getSql)
-    )
+    val factory      = databaseType.createSqlScriptFactory(new ClassicConfiguration(), new ParsingContext())
+    val resource     = new StringResource(sql)
+    val sqlScript    = factory.createSqlScript(resource, false, null)
+    Using.resource(connection.createStatement()) { statement =>
+      sqlScript.getSqlStatements.asScala.foreach(sqlStatement => statement.execute(sqlStatement.getSql))
+    }
   }
 }
