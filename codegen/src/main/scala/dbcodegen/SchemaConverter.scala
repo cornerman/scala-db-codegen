@@ -37,7 +37,7 @@ object SchemaConverter {
         val columnsMap = columns.map(c => c.name -> c).toMap
 
         val indices = table.getIndexes.asScala.map { index =>
-          val indexColumns = index.getColumns.asScala.map(column => columnsMap(column.getName))
+          val indexColumns = index.getColumns.asScala.flatMap(column => columnsMap.get(column.getName))
 
           DataIndex(
             index.getShortName.stripPrefix(table.getName + "."),
