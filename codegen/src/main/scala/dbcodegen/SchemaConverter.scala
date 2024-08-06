@@ -102,7 +102,8 @@ object SchemaConverter {
         (scalaTypeString, None)
       case enumValues =>
         val targetTypeName = arrayElementType.getOrElse(tpe.getName)
-        (targetTypeName, Some(DataEnum(targetTypeName, enumValues.asScala.map(DataEnumValue(_)).toSeq)))
+        val dataEnum       = DataEnum(targetTypeName, enumValues.asScala.map(DataEnumValue(_)).toSeq)
+        (dataEnum.scalaName, Some(dataEnum))
     }
 
     val scalaTypeWithArray = if (arrayElementType.isDefined) s"Vector[${baseScalaType}]" else baseScalaType
