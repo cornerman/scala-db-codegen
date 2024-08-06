@@ -17,7 +17,7 @@ object SchemaConverter {
     schemaTables: Seq[Table],
     config: CodeGeneratorConfig,
   ): DataSchema = {
-    val schemaName = Option(schema.getName).filter(_.isEmpty).getOrElse("schema")
+    val schemaName = Option(schema.getName).filter(_.nonEmpty).getOrElse("schema")
 
     val (tables, enums) = schemaTables.collect {
       case table if config.schemaTableFilter(schemaName, table.getName) =>
