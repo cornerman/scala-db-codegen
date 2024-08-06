@@ -31,7 +31,7 @@ case class DataTable(
 case class DataEnumValue(
   name: String
 ) {
-  def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
+  def scalaName = NameFormat.sanitizeScalaName(name)
 }
 
 case class DataEnum(
