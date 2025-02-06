@@ -103,6 +103,13 @@ object backend extends ScalaModule with DbCodegenModule {
   // Whether to run scalafmt on the generated code
   // def dbcodegenScalafmt = true
 }
+
+
+### CLI
+
+Use coursier to launch the CLI for generating code:
+```bash
+cs launch com.github.cornerman:scala-db-codegen-cli_2.13:0.5.2 -- --jdbc-url jdbc:postgresql://localhost:5432/postgres --username postgres --password password --out-dir generated-code --template-file schema.scala.ssp --scala-version "3.0.0"
 ```
 
 ### CLI
