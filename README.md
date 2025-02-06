@@ -30,7 +30,7 @@ For ease of use, jdbc drivers as well as schemacrawler plugins for postgresql, m
 
 In `project/plugins.sbt`:
 ```sbt
-addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.4.0")
+addSbtPlugin("com.github.cornerman" % "sbt-db-codegen" % "0.5.2")
 ```
 
 In `build.sbt`:
@@ -76,7 +76,7 @@ The functions `executeSql` and `executeSqlFile` are provided for these kind of u
 In `build.sc`:
 ```scala
 import mill._, scalalib._
-import $ivy.`com.github.cornerman::mill-db-codegen:0.4.0`, dbcodegen.plugin._
+import $ivy.`com.github.cornerman::mill-db-codegen:0.5.2`, dbcodegen.plugin._
 
 object backend extends ScalaModule with DbCodegenModule {
   // sources to trigger reloads when a file changes
@@ -103,6 +103,13 @@ object backend extends ScalaModule with DbCodegenModule {
   // Whether to run scalafmt on the generated code
   // def dbcodegenScalafmt = true
 }
+```
+
+### CLI
+
+Use coursier to launch the CLI for generating code:
+```bash
+cs launch com.github.cornerman:scala-db-codegen-cli_2.13:0.5.2 -- --jdbc-url jdbc:postgresql://localhost:5432/postgres --username postgres --password password --out-dir generated-code --template-file schema.scala.ssp --scala-version "3.0.0"
 ```
 
 ## Template Examples
