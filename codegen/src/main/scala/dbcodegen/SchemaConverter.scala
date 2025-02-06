@@ -72,6 +72,7 @@ object SchemaConverter {
   ): (String, Option[DataEnum]) = {
     val tpe = column.getColumnDataType
 
+    val structAttributes = tpe.getAttributes.asScala
     val (enumValues, arrayElementType) = (tpe.getJavaSqlType.getVendorTypeNumber.intValue(), tpe.getName) match {
       // TODO: specific to Postgres
       // we want to get type information for enums that are used in arrays.
@@ -86,24 +87,28 @@ object SchemaConverter {
         val schemaRetrievalOptions = SchemaCrawlerUtility.matchSchemaRetrievalOptions(connection)
         val enumType               = schemaRetrievalOptions.getEnumDataTypeHelper.getEnumDataTypeInfo(column, columnDataType, conn)
         connection.releaseConnection(conn)
-        (enumType.getEnumValues, Some(elementType))
+        (enumType.getEnumValues.asScala, Some(elementType))
       case (_, _) =>
-        (tpe.getEnumValues, None)
+        (tpe.getEnumValues.asScala, None)
     }
 
-    val (baseScalaType, dataEnum) = enumValues match {
-      case enumValues if enumValues.isEmpty =>
+    val (baseScalaType, dataEnum, dataStruct) = {
+      if (structAttributes.nonEmpty) {
+        ("", None, None)
+      } else if (enumValues.nonEmpty) {
+        val targetTypeName = arrayElementType.getOrElse(tpe.getName)
+        val dataEnum       = DataEnum(targetTypeName, enumValues.map(DataEnumValue(_)).toSeq)
+        (dataEnum.scalaName, Some(dataEnum), None)
+      } else {
         val targetType =
           arrayElementType.flatMap(localTypeNameToSqlType).orElse(localTypeNameToSqlType(tpe.getName)).getOrElse(tpe.getJavaSqlType)
+
         val scalaTypeClassGuess   = sqlToScalaType(targetType)
         val scalaTypeStringGuess  = scalaTypeClassGuess.map(_.toString.replaceFirst("java\\.lang\\.", ""))
         val scalaTypeStringMapped = config.typeMapping(targetType, scalaTypeStringGuess)
         val scalaTypeString       = scalaTypeStringMapped.getOrElse(throw new Exception(s"Cannot map sql type '${targetType}'"))
-        (scalaTypeString, None)
-      case enumValues =>
-        val targetTypeName = arrayElementType.getOrElse(tpe.getName)
-        val dataEnum       = DataEnum(targetTypeName, enumValues.asScala.map(DataEnumValue(_)).toSeq)
-        (dataEnum.scalaName, Some(dataEnum))
+        (scalaTypeString, None, None)
+      }
     }
 
     val scalaTypeWithArray = if (arrayElementType.isDefined) s"Vector[${baseScalaType}]" else baseScalaType
