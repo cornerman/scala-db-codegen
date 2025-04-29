@@ -41,6 +41,20 @@ case class DataEnum(
   def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
 }
 
+case class DataStructMember(
+  name: String,
+  scalaType: String,
+) {
+  def scalaName = NameFormat.sanitizeScalaName(NameFormat.toCamelCase(name))
+}
+
+case class DataStruct(
+  name: String,
+  member: Seq[DataStructMember],
+) {
+  def scalaName = NameFormat.sanitizeScalaName(NameFormat.toPascalCase(name))
+}
+
 case class DataSchema(
   name: String,
   tables: Seq[DataTable],
